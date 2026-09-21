@@ -26,6 +26,21 @@ function daysAgo(n: number) {
 // Products
 const _products: Product[] = [
   {
+    id: "prod-000", business_id: DEMO_BUSINESS_ID,
+    name: "Apple iPhone 14", sku: "APL-IP14-128", category: "Phones",
+    brand: "Apple", model: "iPhone 14", inventory_type: "individual",
+    buying_price: 2800000, selling_price: 3500000, quantity: 0,
+    minimum_stock: 1, supplier: "Dubai Imports", image_url: null,
+    description: "128GB, 5G, Face ID — Brand new sealed box with all accessories",
+    is_active: true,
+    created_at: daysAgo(5), updated_at: daysAgo(0),
+    product_devices: [
+      { id: "dev-ip14-001", imei: "356938035643809", imei_2: null, serial_number: "F2LXXXXXXXAF", storage: "128GB", ram: "6GB", color: "Midnight Black", condition: "New", status: "in_stock", buying_price: 2800000, selling_price: 3500000 },
+      { id: "dev-ip14-002", imei: "356938035643810", imei_2: null, serial_number: "F2LXXXXXXXAG", storage: "128GB", ram: "6GB", color: "Starlight White", condition: "New", status: "in_stock", buying_price: 2800000, selling_price: 3500000 },
+      { id: "dev-ip14-003", imei: "356938035643811", imei_2: null, serial_number: "F2LXXXXXXXAH", storage: "256GB", ram: "6GB", color: "Purple", condition: "New", status: "in_stock", buying_price: 3100000, selling_price: 3900000 },
+    ],
+  },
+  {
     id: "prod-001", business_id: DEMO_BUSINESS_ID,
     name: "Samsung Galaxy A15", sku: "SAM-A15-128", category: "Phones",
     brand: "Samsung", model: "Galaxy A15", inventory_type: "individual",
