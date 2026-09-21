@@ -60,14 +60,28 @@ export async function createProduct(
     return id;
   }
   const { devices = [], ...fields } = product;
+
+  // Sanitise device rows — convert empty strings to null so DB constraints pass
+  const cleanDevices = devices.map((d) => ({
+    imei: d.imei?.trim() || null,
+    imei_2: d.imei_2?.trim() || null,
+    serial_number: d.serial_number?.trim() || null,
+    storage: d.storage?.trim() || null,
+    ram: d.ram?.trim() || null,
+    color: d.color?.trim() || null,
+    condition: d.condition?.trim() || "New",
+    buying_price: d.buying_price ?? null,
+    selling_price: d.selling_price ?? null,
+  }));
+
   const { data, error } = await client().rpc("create_product_with_devices", {
     target_business_id: businessId,
-    product_name: fields.name, product_sku: fields.sku, product_category: fields.category,
-    product_brand: fields.brand, product_model: fields.model,
+    product_name: fields.name, product_sku: fields.sku?.trim() || null, product_category: fields.category,
+    product_brand: fields.brand?.trim() || null, product_model: fields.model?.trim() || null,
     product_inventory_type: fields.inventory_type, product_buying_price: fields.buying_price,
     product_selling_price: fields.selling_price, product_quantity: fields.quantity,
-    product_minimum_stock: fields.minimum_stock, product_supplier: fields.supplier,
-    product_description: fields.description, device_rows: devices,
+    product_minimum_stock: fields.minimum_stock, product_supplier: fields.supplier?.trim() || null,
+    product_description: fields.description?.trim() || null, device_rows: cleanDevices,
   });
   if (error) throw error;
   return data as string;
@@ -117,9 +131,17 @@ export async function receiveDevices(productId: string, devices: Partial<Device>
     return;
   }
   const rows = devices.map((d) => ({
-    product_id: productId, imei: d.imei, imei_2: d.imei_2 || null, serial_number: d.serial_number || null,
-    storage: d.storage || null, ram: d.ram || null, color: d.color || null, condition: d.condition || "New",
-    status: "in_stock" as DeviceStatus, buying_price: d.buying_price ?? null, selling_price: d.selling_price ?? null,
+    product_id: productId,
+    imei: d.imei?.trim() || null,
+    imei_2: d.imei_2?.trim() || null,
+    serial_number: d.serial_number?.trim() || null,
+    storage: d.storage?.trim() || null,
+    ram: d.ram?.trim() || null,
+    color: d.color?.trim() || null,
+    condition: d.condition?.trim() || "New",
+    status: "in_stock" as DeviceStatus,
+    buying_price: d.buying_price ?? null,
+    selling_price: d.selling_price ?? null,
   }));
   const { error } = await client().from("product_devices").insert(rows);
   if (error) throw error;
