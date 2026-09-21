@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import LandingPage from "./pages/LandingPage";
 import BizFlowApp from "./pages/AppShell";
 import { AuthPage, SetupPage } from "./pages/AuthPage";
@@ -15,9 +15,17 @@ function LoadingScreen() {
 }
 
 function ProtectedRoute({ children, setup = false }: { children: ReactNode; setup?: boolean }) {
-  const { session, membership, loading, isDemo } = useAuth();
+  const { session, membership, loading, isDemo, refreshBusiness } = useAuth();
+
+  useEffect(() => {
+    // If logged in but no membership found, try refreshing once more
+    // This handles the case where the business was just created
+    if (!loading && session && !membership && !setup && !isDemo) {
+      refreshBusiness().catch(() => undefined);
+    }
+  }, [loading, session, membership, setup, isDemo]);
+
   if (loading) return <LoadingScreen />;
-  // Demo mode — always allow access to any protected route
   if (isDemo) return <>{children}</>;
   if (!session) return <Navigate to="/login" replace />;
   if (!setup && !membership) return <Navigate to="/app/setup" replace />;

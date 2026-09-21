@@ -28,7 +28,14 @@ export function AuthPage() {
   const [params] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isDemo } = useAuth();
+  const { isDemo, configured } = useAuth();
+  const isSignup = params.get("mode") === "signup" || location.pathname === "/signup";
+  const isReset = params.get("mode") === "reset";
+  const [showPassword, setShowPassword] = useState(false);
+  const [form, setForm] = useState({ name: "", phone: "", email: "", password: "" });
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // ── Demo mode — show a simple entry screen ──────────────────────────────
   if (isDemo) {
@@ -40,7 +47,7 @@ export function AuthPage() {
           </div>
           <h1 className="text-xl font-bold text-gray-900 mb-1">BizFlow Demo</h1>
           <p className="text-sm text-gray-500 mb-6">
-            You are running in demo mode. No real account is needed — click below to explore the full system with sample data.
+            You are running in demo mode. No real account needed — click below to explore the full system with sample data.
           </p>
           <button
             onClick={() => navigate("/app", { replace: true })}
@@ -55,14 +62,6 @@ export function AuthPage() {
       </AuthShell>
     );
   }
-  const { configured } = useAuth();
-  const isSignup = params.get("mode") === "signup" || location.pathname === "/signup";
-  const isReset = params.get("mode") === "reset";
-  const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({ name: "", phone: "", email: "", password: "" });
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
 
   // ── Password reset request ──────────────────────────────────────────
   if (isReset) {
@@ -146,10 +145,64 @@ export function AuthPage() {
 
 export function SetupPage() {
   const navigate = useNavigate();
-  const { user, createBusiness } = useAuth();
-  const [form, setForm] = useState({ name: "", phone: "", email: user?.email ?? "", location: "", currency: "UGX" });
+  const { user, createBusiness, refreshBusiness } = useAuth();
+  const [form, setForm] = useState({
+    name: "", phone: "", email: user?.email ?? "",
+    location: "", currency: "UGX",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const submit = async (event: FormEvent) => { event.preventDefault(); setError(""); setLoading(true); try { await createBusiness(form); navigate("/app", { replace: true }); } catch { setError("We could not create your business. Check your connection and try again."); } finally { setLoading(false); } };
-  return <AuthShell><div className="flex items-center gap-2 mb-1"><Building2 size={18} className="text-green-600" /><h1 className="text-xl font-bold text-gray-900">Set up your business</h1></div><p className="text-sm text-gray-500 mb-6">Tell us about your shop so BizFlow can be ready for you.</p>{error && <div role="alert" className="mb-4 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-600">{error}</div>}<form className="flex flex-col gap-4" onSubmit={submit}><Field label="Business name" placeholder="e.g. ABC Mobile Phones" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /><Field label="Phone number" placeholder="+256 700 000 000" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required /><Field label="Email" type="email" placeholder="shop@business.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /><Field label="Location" placeholder="e.g. Kampala, Uganda" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} required /><label className="block"><span className="block text-sm font-medium text-gray-700 mb-1.5">Currency</span><select value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"><option value="UGX">UGX - Ugandan Shilling</option><option value="KES">KES - Kenyan Shilling</option><option value="TZS">TZS - Tanzanian Shilling</option><option value="USD">USD - US Dollar</option></select></label><SubmitButton loading={loading}>Continue to BizFlow <ArrowRight size={16} /></SubmitButton></form></AuthShell>;
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    setError("");
+    if (!form.name.trim()) { setError("Business name is required."); return; }
+    setLoading(true);
+    try {
+      await createBusiness(form);
+      // Explicitly refresh to make sure membership is in state before navigating
+      await refreshBusiness();
+      navigate("/app", { replace: true });
+    } catch (err: any) {
+      const msg = err?.message ?? "";
+      if (msg.includes("already exists") || msg.includes("duplicate")) {
+        setError("You already have a business. Try logging out and back in.");
+      } else if (msg.includes("not authenticated") || msg.includes("signed in")) {
+        setError("Your session expired. Please log in again.");
+      } else {
+        setError(msg || "Could not create your business. Check your connection and try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AuthShell>
+      <div className="flex items-center gap-2 mb-1">
+        <Building2 size={18} className="text-green-600" />
+        <h1 className="text-xl font-bold text-gray-900">Set up your business</h1>
+      </div>
+      <p className="text-sm text-gray-500 mb-6">Tell us about your shop so BizFlow can be ready for you.</p>
+      {error && <div role="alert" className="mb-4 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-600">{error}</div>}
+      <form className="flex flex-col gap-4" onSubmit={submit}>
+        <Field label="Business name" placeholder="e.g. ABC Mobile Phones" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+        <Field label="Phone number" placeholder="+256 700 000 000" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+        <Field label="Email" type="email" placeholder="shop@business.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        <Field label="Location" placeholder="e.g. Kampala, Uganda" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+        <label className="block">
+          <span className="block text-sm font-medium text-gray-700 mb-1.5">Currency</span>
+          <select value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+            <option value="UGX">UGX — Ugandan Shilling</option>
+            <option value="KES">KES — Kenyan Shilling</option>
+            <option value="TZS">TZS — Tanzanian Shilling</option>
+            <option value="USD">USD — US Dollar</option>
+          </select>
+        </label>
+        <SubmitButton loading={loading}>
+          Continue to BizFlow <ArrowRight size={16} />
+        </SubmitButton>
+      </form>
+    </AuthShell>
+  );
 }

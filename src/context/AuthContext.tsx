@@ -70,11 +70,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isDemo]);
 
   const refreshBusiness = async () => {
-    if (isDemo || !supabase || !session?.user) { if (isDemo) return; setMembership(null); return; }
+    if (isDemo) return;
+    if (!supabase) { setMembership(null); return; }
+
+    // Always get the current session fresh — don't rely on closure state
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    if (!currentSession?.user) { setMembership(null); return; }
+
     const { data, error } = await supabase
       .from("business_members")
       .select("id, business_id, user_id, role, businesses(id, name, owner_id, phone, email, location, currency)")
-      .eq("user_id", session.user.id).eq("is_active", true).maybeSingle();
+      .eq("user_id", currentSession.user.id)
+      .eq("is_active", true)
+      .maybeSingle();
+
     if (error) throw error;
     const business = Array.isArray(data?.businesses) ? data.businesses[0] : data?.businesses;
     setMembership(data && business ? { ...data, business } as BusinessMembership : null);
