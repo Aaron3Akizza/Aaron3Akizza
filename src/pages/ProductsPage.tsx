@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Boxes, ChevronRight, Edit3, Package, Plus, RefreshCw, Search, Smartphone, X, ToggleLeft, ToggleRight } from "lucide-react";
-import { adjustStock, availableStock, createProduct, isValidImei, listProducts, Product, receiveStock, receiveDevices, setProductActive, stockState, updateProduct } from "../lib/inventory";
+import { adjustStock, availableStock, createProduct, listProducts, Product, receiveStock, receiveDevices, setProductActive, stockState, updateProduct } from "../lib/inventory";
 import { useMoney } from "../lib/format";
 
 type Props = { businessId: string; role: string | null };
@@ -22,7 +22,10 @@ function ProductModal({ product, businessId, onClose, onSaved }: { product?: Pro
     const buying = Number(form.buying_price); const selling = Number(form.selling_price); const quantity = Number(form.quantity || 0);
     if (!form.name.trim() || !form.category.trim() || !Number.isFinite(buying) || !Number.isFinite(selling) || buying < 0 || selling < 0) { setError("Enter a name, category, and valid non-negative prices."); return; }
     if (selling < buying) { setError("Selling price should not be below buying price."); return; }
-    if (!product && (form.inventory_type === "quantity" ? quantity < 0 : form.devices.length === 0 || form.devices.some((device) => !isValidImei(device.imei)))) { setError(form.inventory_type === "quantity" ? "Quantity cannot be negative." : "Each device needs a valid 15-digit IMEI with a valid checksum."); return; }
+    if (!product && (form.inventory_type === "quantity" ? quantity < 0 : form.devices.length === 0 || form.devices.some((device) => !device.imei.trim()))) {
+      setError(form.inventory_type === "quantity" ? "Quantity cannot be negative." : "Each device needs an IMEI or serial number.");
+      return;
+    }
     setSaving(true);
     try {
       if (product) await updateProduct(product.id, { name: form.name.trim(), sku: form.sku.trim() || null, category: form.category.trim(), brand: form.brand.trim() || null, model: form.model.trim() || null, buying_price: buying, selling_price: selling, minimum_stock: Number(form.minimum_stock || 0), supplier: form.supplier.trim() || null, description: form.description.trim() || null });
@@ -65,8 +68,8 @@ function Detail({ product, onClose, onEdit, onReload, canEdit }: { product: Prod
       if (stockAction === "receive") await receiveStock(product.id, Number(amount), reason);
       else if (stockAction === "adjust") await adjustStock(product.id, Number(amount), reason);
       else if (stockAction === "receiveDevices") {
-        const invalidIdx = newDevices.findIndex((d) => !isValidImei(d.imei));
-        if (invalidIdx !== -1) { setError(`Device ${invalidIdx + 1}: invalid 15-digit IMEI.`); setSaving(false); return; }
+        const invalidIdx = newDevices.findIndex((d) => !d.imei.trim());
+        if (invalidIdx !== -1) { setError(`Device ${invalidIdx + 1}: enter an IMEI or serial number.`); setSaving(false); return; }
         await receiveDevices(product.id, newDevices);
         setNewDevices([{ ...emptyDevice }]);
       }

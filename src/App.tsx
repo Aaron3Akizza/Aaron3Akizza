@@ -11,16 +11,20 @@ function LoadingScreen() {
 }
 
 function ProtectedRoute({ children, setup = false }: { children: ReactNode; setup?: boolean }) {
-  const { session, membership, loading } = useAuth();
+  const { session, membership, loading, isDemo } = useAuth();
   if (loading) return <LoadingScreen />;
+  // Demo mode — always allow access
+  if (isDemo) return <>{children}</>;
   if (!session) return <Navigate to="/login" replace />;
   if (!setup && !membership) return <Navigate to="/app/setup" replace />;
   return <>{children}</>;
 }
 
 function PublicRoute() {
-  const { session, membership, loading } = useAuth();
+  const { session, membership, loading, isDemo } = useAuth();
   if (loading) return <LoadingScreen />;
+  // In demo mode — skip login, go straight to the app
+  if (isDemo) return <Navigate to="/app" replace />;
   if (session) return <Navigate to={membership ? "/app" : "/app/setup"} replace />;
   return <AuthPage />;
 }

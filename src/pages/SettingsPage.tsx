@@ -316,6 +316,7 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 export default function SettingsPage({ role }: { role: string | null }) {
   const [tab, setTab] = useState<Tab>("business");
   const isOwner = role === "owner";
+  const { isDemo } = useAuth();
 
   return (
     <div className="p-5 lg:p-8 flex flex-col gap-5">
@@ -339,8 +340,20 @@ export default function SettingsPage({ role }: { role: string | null }) {
       </div>
 
       {tab === "business" && isOwner && <BusinessSettings />}
-      {tab === "profile" && <ProfileSettings />}
-      {tab === "password" && <PasswordSettings />}
+      {tab === "profile" && !isDemo && <ProfileSettings />}
+      {tab === "profile" && isDemo && (
+        <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <p className="text-sm font-semibold text-gray-900 mb-1">Your profile</p>
+          <p className="text-sm text-gray-500">Profile editing is available when connected to Supabase. You are currently in demo mode.</p>
+        </div>
+      )}
+      {tab === "password" && !isDemo && <PasswordSettings />}
+      {tab === "password" && isDemo && (
+        <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <p className="text-sm font-semibold text-gray-900 mb-1">Password</p>
+          <p className="text-sm text-gray-500">Password management is available when connected to Supabase.</p>
+        </div>
+      )}
       <DangerZone />
     </div>
   );
