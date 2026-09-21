@@ -28,6 +28,33 @@ export function AuthPage() {
   const [params] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const { isDemo } = useAuth();
+
+  // ── Demo mode — show a simple entry screen ──────────────────────────────
+  if (isDemo) {
+    return (
+      <AuthShell>
+        <div className="text-center">
+          <div className="h-14 w-14 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-4">
+            <TrendingUp size={24} className="text-amber-600" />
+          </div>
+          <h1 className="text-xl font-bold text-gray-900 mb-1">BizFlow Demo</h1>
+          <p className="text-sm text-gray-500 mb-6">
+            You are running in demo mode. No real account is needed — click below to explore the full system with sample data.
+          </p>
+          <button
+            onClick={() => navigate("/app", { replace: true })}
+            className="inline-flex items-center justify-center gap-2 w-full rounded-lg bg-green-600 text-white px-4 py-3 text-sm font-semibold hover:bg-green-700"
+          >
+            Enter demo <ArrowRight size={16} />
+          </button>
+          <p className="text-xs text-gray-400 mt-4">
+            To go live, add your Supabase credentials to the <code className="bg-gray-100 px-1 rounded">.env</code> file.
+          </p>
+        </div>
+      </AuthShell>
+    );
+  }
   const { configured } = useAuth();
   const isSignup = params.get("mode") === "signup" || location.pathname === "/signup";
   const isReset = params.get("mode") === "reset";
