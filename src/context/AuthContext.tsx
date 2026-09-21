@@ -73,20 +73,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isDemo) return;
     if (!supabase) { setMembership(null); return; }
 
-    // Always get the current session fresh — don't rely on closure state
     const { data: { session: currentSession } } = await supabase.auth.getSession();
     if (!currentSession?.user) { setMembership(null); return; }
 
+    // Use limit(1) + array access instead of maybeSingle() to avoid
+    // "multiple rows" errors if a user somehow has duplicate memberships
     const { data, error } = await supabase
       .from("business_members")
       .select("id, business_id, user_id, role, businesses(id, name, owner_id, phone, email, location, currency)")
       .eq("user_id", currentSession.user.id)
       .eq("is_active", true)
-      .maybeSingle();
+      .order("created_at", { ascending: true })
+      .limit(1);
 
     if (error) throw error;
-    const business = Array.isArray(data?.businesses) ? data.businesses[0] : data?.businesses;
-    setMembership(data && business ? { ...data, business } as BusinessMembership : null);
+
+    const row = data?.[0] ?? null;
+    if (!row) { setMembership(null); return; }
+
+    const business = Array.isArray(row.businesses) ? row.businesses[0] : row.businesses;
+    if (!business) { setMembership(null); return; }
+
+    setMembership({ ...row, business } as BusinessMembership);
   };
 
   useEffect(() => {
@@ -103,21 +111,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const createBusiness = async (details: { name: string; phone: string; email: string; location: string; currency: string }) => {
     if (isDemo) return;
     if (!supabase || !session?.user) throw new Error("You must be signed in to create a business.");
+
     const { data: businessId, error } = await supabase.rpc("create_business_for_current_user", {
-      business_name: details.name, business_phone: details.phone || null,
-      business_email: details.email || null, business_location: details.location || null,
+      business_name: details.name,
+      business_phone: details.phone || null,
+      business_email: details.email || null,
+      business_location: details.location || null,
       business_currency: details.currency,
     });
-    if (error) throw error;
+
+    if (error) {
+      // If the user already has a business (duplicate), just load the existing one
+      if (error.message?.toLowerCase().includes("duplicate") ||
+          error.message?.toLowerCase().includes("unique") ||
+          error.code === "23505") {
+        await refreshBusiness();
+        return;
+      }
+      throw error;
+    }
+
     if (!businessId) throw new Error("Business was created without an ID.");
-    const { data: membershipData, error: membershipError } = await supabase
-      .from("business_members")
-      .select("id, business_id, user_id, role, businesses(id, name, owner_id, phone, email, location, currency)")
-      .eq("user_id", session.user.id).eq("business_id", businessId).eq("is_active", true).limit(1).maybeSingle();
-    if (membershipError || !membershipData) throw membershipError ?? new Error("Business membership was not created.");
-    const business = Array.isArray(membershipData.businesses) ? membershipData.businesses[0] : membershipData.businesses;
-    if (!business) throw new Error("Business membership was created without a business record.");
-    setMembership({ ...membershipData, business } as BusinessMembership);
+
+    // Use refreshBusiness to load membership — it handles all edge cases cleanly
+    await refreshBusiness();
   };
 
   const signOut = async () => {

@@ -152,22 +152,31 @@ export function SetupPage() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false); // prevent double-submit
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (submitted) return;
     setError("");
     if (!form.name.trim()) { setError("Business name is required."); return; }
+    setSubmitted(true);
     setLoading(true);
     try {
       await createBusiness(form);
-      // Explicitly refresh to make sure membership is in state before navigating
       await refreshBusiness();
       navigate("/app", { replace: true });
     } catch (err: any) {
-      const msg = err?.message ?? "";
-      if (msg.includes("already exists") || msg.includes("duplicate")) {
-        setError("You already have a business. Try logging out and back in.");
-      } else if (msg.includes("not authenticated") || msg.includes("signed in")) {
+      setSubmitted(false);
+      const msg: string = err?.message ?? "";
+      if (msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("unique") || msg.toLowerCase().includes("already exists")) {
+        // Business already created — just load it and go
+        try {
+          await refreshBusiness();
+          navigate("/app", { replace: true });
+        } catch {
+          setError("You already have a business. Try logging out and back in.");
+        }
+      } else if (msg.toLowerCase().includes("not authenticated") || msg.toLowerCase().includes("signed in")) {
         setError("Your session expired. Please log in again.");
       } else {
         setError(msg || "Could not create your business. Check your connection and try again.");
