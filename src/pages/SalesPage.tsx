@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, ChevronRight, Plus, Printer, Search, Trash2, X, Filter } from "lucide-react";
+import { ArrowLeft, Check, ChevronRight, AlertTriangle, Plus, Printer, Search, Trash2, X, Filter, RefreshCw } from "lucide-react";
 import { availableStock, listProducts, Product } from "../lib/inventory";
-import { CartItem, cartTotal, completeSale, createCustomer, Customer, getSale, listCustomers, listSales, Sale, updateSaleDueDate, voidSale } from "../lib/sales";
+import { CartItem, cartTotal, completeSale, createCustomer, Customer, getSale, SaleDetail as SaleDetailType, listCustomers, listSales, Sale, SalesFilter, updateSaleDueDate, voidSale } from "../lib/sales";
 import { useMoney, formatDateTime } from "../lib/format";
 
 type Props = { businessId: string; role: string | null; mode?: "history" | "new" };
@@ -214,28 +214,57 @@ export function SalesHistoryPage({ businessId, role }: Props) {
   const money = useMoney();
   const navigate = useNavigate();
   const [sales, setSales] = useState<Sale[]>([]);
-  const [selected, setSelected] = useState<any>(null);
+  const [selected, setSelected] = useState<SaleDetailType | null>(null);
+  const [selectedLoading, setSelectedLoading] = useState(false);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [offset, setOffset] = useState(0);
+  const PAGE = 50;
 
-  const load = () => listSales(businessId).then(setSales).catch(() => setError("Could not load sales."));
-  useEffect(() => { load(); }, [businessId]);
+  const load = useCallback(async (newOffset = 0) => {
+    setLoading(true);
+    setError("");
+    try {
+      const filter: SalesFilter = {
+        query:    query    || undefined,
+        status:   statusFilter !== "all" ? statusFilter : undefined,
+        fromDate: fromDate || undefined,
+        toDate:   toDate   || undefined,
+        limit:    PAGE,
+        offset:   newOffset,
+      };
+      const rows = await listSales(businessId, filter);
+      setSales(rows);
+      setOffset(newOffset);
+    } catch {
+      setError("Could not load sales. Check your connection.");
+    } finally {
+      setLoading(false);
+    }
+  }, [businessId, query, statusFilter, fromDate, toDate]);
 
-  const filtered = sales.filter((s) => {
-    const text = [s.receipt_number].join(" ").toLowerCase();
-    const matchQuery = !query || text.includes(query.toLowerCase());
-    const matchStatus = statusFilter === "all" || s.payment_status === statusFilter || s.sale_status === statusFilter;
-    const matchFrom = !fromDate || s.created_at >= fromDate;
-    const matchTo = !toDate || s.created_at <= toDate + "T23:59:59";
-    return matchQuery && matchStatus && matchFrom && matchTo;
-  });
+  // Reload when filters change
+  useEffect(() => { load(0); }, [load]);
 
-  const totalRevenue = filtered.filter((s) => s.sale_status !== "voided").reduce((sum, s) => sum + s.total, 0);
-  const totalBalance = filtered.filter((s) => s.sale_status !== "voided").reduce((sum, s) => sum + s.balance, 0);
+  const openDetail = async (id: string) => {
+    setSelectedLoading(true);
+    try {
+      const detail = await getSale(id);
+      setSelected(detail);
+    } catch {
+      setError("Could not load sale details.");
+    } finally {
+      setSelectedLoading(false);
+    }
+  };
+
+  const totalRevenue = sales.filter((s) => s.sale_status !== "voided").reduce((sum, s) => sum + s.total, 0);
+  const totalBalance = sales.filter((s) => s.sale_status !== "voided").reduce((sum, s) => sum + s.balance, 0);
 
   return (
     <div className="p-5 lg:p-8">
@@ -243,20 +272,33 @@ export function SalesHistoryPage({ businessId, role }: Props) {
         <div>
           <h2 className="text-lg font-bold text-gray-900">Sales</h2>
           <p className="text-sm text-gray-500">
-            {filtered.length} transaction{filtered.length !== 1 ? "s" : ""}
+            {loading ? "Loading…" : `${sales.length}${sales.length === PAGE ? "+" : ""} transaction${sales.length !== 1 ? "s" : ""}`}
             {totalRevenue > 0 ? ` · ${money(totalRevenue)} revenue` : ""}
           </p>
         </div>
-        <button onClick={() => navigate("/app/sales/new")} className="rounded-lg bg-green-600 text-white px-4 py-2.5 text-sm font-medium">
-          New sale
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => load(0)} aria-label="Refresh" className="rounded-lg border border-gray-200 p-2.5 text-gray-500 hover:bg-gray-50">
+            <RefreshCw size={16} />
+          </button>
+          <button onClick={() => navigate("/app/sales/new")} className="rounded-lg bg-green-600 text-white px-4 py-2.5 text-sm font-medium">
+            New sale
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-4 items-center">
-        <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 w-full sm:w-64">
+        <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 w-full sm:w-72">
           <Search size={14} className="text-gray-400" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search receipt number..." className="flex-1 text-sm outline-none" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search receipt or customer name…"
+            className="flex-1 text-sm outline-none"
+          />
+          {query && (
+            <button onClick={() => setQuery("")} className="text-gray-400 hover:text-gray-600"><X size={13} /></button>
+          )}
         </div>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-gray-200 px-3 py-2 text-sm">
           <option value="all">All status</option>
@@ -265,11 +307,17 @@ export function SalesHistoryPage({ businessId, role }: Props) {
           <option value="credit">Credit</option>
           <option value="voided">Voided</option>
         </select>
-        <button onClick={() => setShowFilters(!showFilters)} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm ${showFilters ? "border-green-600 text-green-600 bg-green-50" : "border-gray-200 text-gray-600"}`}>
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm ${showFilters ? "border-green-600 text-green-600 bg-green-50" : "border-gray-200 text-gray-600"}`}
+        >
           <Filter size={14} /> Date range
         </button>
         {(query || statusFilter !== "all" || fromDate || toDate) && (
-          <button onClick={() => { setQuery(""); setStatusFilter("all"); setFromDate(""); setToDate(""); }} className="text-xs text-gray-400 hover:text-gray-700">
+          <button
+            onClick={() => { setQuery(""); setStatusFilter("all"); setFromDate(""); setToDate(""); }}
+            className="text-xs text-gray-400 hover:text-gray-700"
+          >
             Clear filters
           </button>
         )}
@@ -286,63 +334,109 @@ export function SalesHistoryPage({ businessId, role }: Props) {
         </div>
       )}
 
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {error && (
+        <div className="mb-3 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-600 flex items-center gap-2">
+          <AlertTriangle size={14} /> {error}
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs text-gray-400 border-b border-gray-50">
-              <th className="px-5 py-3">Receipt</th>
-              <th className="px-5 py-3">Total</th>
-              <th className="px-5 py-3">Paid</th>
-              <th className="px-5 py-3">Balance</th>
-              <th className="px-5 py-3">Status</th>
-              <th className="px-5 py-3">Date</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((sale) => (
-              <tr key={sale.id} onClick={() => getSale(sale.id).then(setSelected)} className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-                <td className="px-5 py-3 font-medium">{sale.receipt_number}</td>
-                <td className="px-5 py-3">{money(sale.total)}</td>
-                <td className="px-5 py-3">{money(sale.amount_paid)}</td>
-                <td className={`px-5 py-3 ${sale.balance > 0 ? "text-amber-600 font-medium" : "text-gray-400"}`}>{money(sale.balance)}</td>
-                <td className="px-5 py-3">
-                  {sale.sale_status === "voided" ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">Voided</span>
-                  ) : (
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${sale.payment_status === "paid" ? "bg-green-50 text-green-600" : sale.payment_status === "credit" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"}`}>
-                      {sale.payment_status === "paid" ? "Paid" : sale.payment_status === "credit" ? "Credit" : "Partial"}
-                    </span>
-                  )}
-                </td>
-                <td className="px-5 py-3 text-gray-500">{formatDateTime(sale.created_at)}</td>
-                <td className="px-5 py-3"><ChevronRight size={16} /></td>
+        {loading && sales.length === 0 ? (
+          <p className="p-10 text-center text-sm text-gray-400">Loading sales…</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-gray-400 border-b border-gray-50">
+                <th className="px-5 py-3">Receipt</th>
+                <th className="px-5 py-3">Customer</th>
+                <th className="px-5 py-3">Total</th>
+                <th className="px-5 py-3">Paid</th>
+                <th className="px-5 py-3">Balance</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3">Date</th>
+                <th />
               </tr>
-            ))}
-          </tbody>
-        </table>
-        {!filtered.length && <p className="p-10 text-center text-sm text-gray-500">No sales match your filters.</p>}
+            </thead>
+            <tbody>
+              {sales.map((sale) => (
+                <tr
+                  key={sale.id}
+                  onClick={() => openDetail(sale.id)}
+                  className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
+                >
+                  <td className="px-5 py-3 font-medium">{sale.receipt_number}</td>
+                  <td className="px-5 py-3 text-gray-600">{sale.customer_name ?? <span className="text-gray-400">Walk-in</span>}</td>
+                  <td className="px-5 py-3">{money(sale.total)}</td>
+                  <td className="px-5 py-3">{money(sale.amount_paid)}</td>
+                  <td className={`px-5 py-3 ${sale.balance > 0 ? "text-amber-600 font-medium" : "text-gray-400"}`}>{money(sale.balance)}</td>
+                  <td className="px-5 py-3">
+                    {sale.sale_status === "voided" ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">Voided</span>
+                    ) : (
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        sale.payment_status === "paid"    ? "bg-green-50 text-green-600" :
+                        sale.payment_status === "credit"  ? "bg-red-50 text-red-600" :
+                                                            "bg-amber-50 text-amber-600"}`}>
+                        {sale.payment_status === "paid" ? "Paid" : sale.payment_status === "credit" ? "Credit" : "Partial"}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3 text-gray-500">{formatDateTime(sale.created_at)}</td>
+                  <td className="px-5 py-3"><ChevronRight size={16} className="text-gray-300" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {!loading && sales.length === 0 && (
+          <p className="p-10 text-center text-sm text-gray-500">No sales match your filters.</p>
+        )}
       </div>
 
+      {/* Pagination */}
+      {(offset > 0 || sales.length === PAGE) && (
+        <div className="flex justify-between items-center mt-3">
+          <button
+            disabled={offset === 0}
+            onClick={() => load(Math.max(0, offset - PAGE))}
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 disabled:opacity-40"
+          >
+            ← Previous
+          </button>
+          <span className="text-xs text-gray-400">Page {Math.floor(offset / PAGE) + 1}</span>
+          <button
+            disabled={sales.length < PAGE}
+            onClick={() => load(offset + PAGE)}
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 disabled:opacity-40"
+          >
+            Next →
+          </button>
+        </div>
+      )}
+
       {totalBalance > 0 && (
-        <p className="text-sm text-amber-600 mt-3 font-medium">Total outstanding in view: {money(totalBalance)}</p>
+        <p className="text-sm text-amber-600 mt-2 font-medium">Total outstanding in view: {money(totalBalance)}</p>
+      )}
+
+      {selectedLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-xl px-6 py-4 text-sm text-gray-600">Loading sale…</div>
+        </div>
       )}
 
       {selected && (
-        <SaleDetail
+        <SaleDetailPanel
           sale={selected}
           canVoid={canVoid(role)}
           onClose={() => setSelected(null)}
-          onVoided={() => { setSelected(null); load(); }}
+          onVoided={() => { setSelected(null); load(0); }}
         />
       )}
     </div>
   );
 }
 
-function SaleDetail({ sale, canVoid: allowed, onClose, onVoided }: { sale: any; canVoid: boolean; onClose: () => void; onVoided: () => void }) {
+function SaleDetailPanel({ sale, canVoid: allowed, onClose, onVoided }: { sale: SaleDetailType; canVoid: boolean; onClose: () => void; onVoided: () => void }) {
   const money = useMoney();
   const [voiding, setVoiding] = useState(false);
   const [error, setError] = useState("");

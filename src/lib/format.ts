@@ -37,6 +37,16 @@ export function useMoney(): (value: number | null | undefined) => string {
 }
 
 /**
+ * React hook — returns the currency symbol/code for the current business.
+ * Usage: const currency = useCurrency(); → "UGX" | "KES" | "$" etc.
+ */
+export function useCurrency(): string {
+  const { business } = useBusiness();
+  const code = business?.currency ?? "UGX";
+  return CURRENCY_SYMBOLS[code] ?? code;
+}
+
+/**
  * Format a date string into a short human-readable form.
  * Uses the local timezone of the browser (correct for East Africa).
  */

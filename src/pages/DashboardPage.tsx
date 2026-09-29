@@ -179,8 +179,8 @@ export default function DashboardPage({ businessId }: { businessId: string }) {
         </div>
       )}
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats row — 5 cards on large screens, 2 columns on mobile */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
           label="Today's sales"
           value={money(stats?.todaySales ?? 0)}
@@ -189,31 +189,48 @@ export default function DashboardPage({ businessId }: { businessId: string }) {
           icon={TrendingUp}
         />
         <StatCard
-          label="Today's profit"
+          label="Gross profit"
           value={money(stats?.todayProfit ?? 0)}
           sub={
             stats && stats.todaySales > 0
               ? `${((stats.todayProfit / stats.todaySales) * 100).toFixed(1)}% margin`
-              : undefined
+              : "No sales yet"
           }
           tone="positive"
           icon={TrendingUp}
         />
         <StatCard
-          label="Low stock items"
-          value={String(lowStock.length)}
-          sub={lowStock.length > 0 ? "Need attention" : "All good"}
-          tone={lowStock.length > 0 ? "warning" : "neutral"}
-          icon={AlertTriangle}
+          label="Today's expenses"
+          value={money(stats?.todayExpenses ?? 0)}
+          sub={stats?.todayExpenses ? "Recorded today" : "None today"}
+          tone={stats?.todayExpenses ? "warning" : "neutral"}
+          icon={Wallet}
+        />
+        <StatCard
+          label="Net profit today"
+          value={money(stats?.todayNet ?? 0)}
+          sub="After today's expenses"
+          tone={(stats?.todayNet ?? 0) >= 0 ? "positive" : "warning"}
+          icon={TrendingUp}
         />
         <StatCard
           label="Outstanding debt"
           value={money(stats?.outstandingDebt ?? 0)}
-          sub={stats?.debtCount ? `${stats.debtCount} customer${stats.debtCount !== 1 ? "s" : ""} owing` : undefined}
+          sub={stats?.debtCount ? `${stats.debtCount} customer${stats.debtCount !== 1 ? "s" : ""} owing` : "No debt"}
           tone={stats?.outstandingDebt ? "warning" : "neutral"}
           icon={Wallet}
         />
       </div>
+
+      {/* Low stock alert strip */}
+      {lowStock.length > 0 && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-2.5 flex items-center gap-2 text-sm text-amber-700">
+          <AlertTriangle size={15} className="shrink-0" />
+          <span><strong>{lowStock.length}</strong> product{lowStock.length !== 1 ? "s are" : " is"} running low on stock —&nbsp;
+            {lowStock.slice(0, 3).map((p) => p.name).join(", ")}{lowStock.length > 3 ? ` and ${lowStock.length - 3} more` : ""}
+          </span>
+        </div>
+      )}
 
       {/* Chart + top products */}
       <div className="grid lg:grid-cols-3 gap-5">

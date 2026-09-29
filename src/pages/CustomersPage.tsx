@@ -10,7 +10,7 @@ import {
   type CustomerSale,
   type Payment,
 } from "../lib/customers";
-import { useMoney } from "../lib/format";
+import { useMoney, useCurrency } from "../lib/format";
 
 type Props = { businessId: string; role: string | null };
 
@@ -42,6 +42,7 @@ function PaymentModal({
   onRecorded: () => void;
 }) {
   const money = useMoney();
+  const currency = useCurrency();
   const pendingSales = sales.filter((s) => s.balance > 0);
   const [saleId, setSaleId] = useState(pendingSales[0]?.id ?? "");
   const [amount, setAmount] = useState("");
@@ -95,7 +96,7 @@ function PaymentModal({
             </label>
             <div className="grid grid-cols-2 gap-3">
               <label className="block text-sm">
-                <span className="block font-medium text-gray-700 mb-1.5">Amount (UGX)</span>
+                <span className="block font-medium text-gray-700 mb-1.5">Amount ({currency})</span>
                 <input type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="0" />
               </label>
               <label className="block text-sm">
@@ -312,7 +313,11 @@ export default function CustomersPage({ businessId }: Props) {
     setLoading(true);
     setError("");
     try {
-      setCustomers(await listCustomers(businessId));
+      setCustomers(await listCustomers(businessId, {
+        search:          query    || undefined,
+        onlyWithBalance: filter === "owing",
+        limit:           500, // sufficient for any single shop
+      }));
     } catch {
       setError("Could not load customers.");
     } finally {
@@ -320,15 +325,16 @@ export default function CustomersPage({ businessId }: Props) {
     }
   };
 
-  useEffect(() => { load(); }, [businessId]);
+  useEffect(() => { load(); }, [businessId, filter]);
 
+  // Client-side search is still applied for instant response while typing
   const filtered = useMemo(() => {
-    return customers.filter((c) => {
-      const matches = [c.full_name, c.phone, c.email].filter(Boolean).join(" ").toLowerCase().includes(query.toLowerCase());
-      const owing = filter === "owing" ? c.total_balance > 0 : true;
-      return matches && owing;
-    });
-  }, [customers, query, filter]);
+    if (!query) return customers;
+    const q = query.toLowerCase();
+    return customers.filter((c) =>
+      [c.full_name, c.phone, c.email].filter(Boolean).join(" ").toLowerCase().includes(q)
+    );
+  }, [customers, query]);
 
   const totalDebt = customers.reduce((s, c) => s + c.total_balance, 0);
   const owingCount = customers.filter((c) => c.total_balance > 0).length;

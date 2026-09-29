@@ -1,16 +1,18 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+// Vite exposes VITE_* env vars to the browser.
+// NEXT_PUBLIC_* is a Next.js convention and does NOT work in Vite.
+const supabaseUrl    = import.meta.env.VITE_SUPABASE_URL    as string | undefined;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabasePublishableKey);
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl!, supabasePublishableKey!, {
+  ? createClient(supabaseUrl!, supabaseAnonKey!, {
       auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
+        persistSession:    true,
+        autoRefreshToken:  true,
+        detectSessionInUrl: true,   // picks up ?code= and #access_token= from email links
       },
     })
   : null;

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth, useBusiness } from "../context/AuthContext";
+import { useAdmin } from "../context/AdminContext";
 import ProductsPage from "./ProductsPage";
 import { SalesHistoryPage } from "./SalesPage";
 import DashboardPage from "./DashboardPage";
@@ -12,7 +13,7 @@ import SettingsPage from "./SettingsPage";
 import {
   TrendingUp, Package, Users, Wallet, FileBarChart, UserCog,
   Settings, Search, Bell, Menu, X, LayoutGrid, LogOut, HelpCircle,
-  Receipt, FlaskConical,
+  Receipt, FlaskConical, ShieldCheck,
 } from "lucide-react";
 
 /* =========================================================
@@ -113,6 +114,15 @@ function Sidebar({ active, onSelect, mobileOpen, onCloseMobile, user, business, 
           <HelpCircle size={17} strokeWidth={2} />
           Help / support
         </button>
+        {isAdmin && (
+          <button
+            onClick={() => navigate("/admin")}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-amber-400 hover:bg-gray-800 hover:text-amber-300 w-full"
+          >
+            <ShieldCheck size={17} strokeWidth={2} />
+            Platform Admin
+          </button>
+        )}
         <div className="flex items-center gap-2.5 px-3 py-2.5">
           <div className="h-8 w-8 rounded-full bg-green-600/20 border border-green-600/40 flex items-center justify-center text-xs font-bold text-green-400 shrink-0">
             {initials}
@@ -197,6 +207,7 @@ export default function BizFlowApp() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, signOut, isDemo } = useAuth();
   const { business, role } = useBusiness();
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -233,6 +244,7 @@ export default function BizFlowApp() {
           role={role}
           onSignOut={handleSignOut}
           isDemo={isDemo}
+          isAdmin={isAdmin}
         />
         <div className="flex-1 min-w-0 overflow-y-auto">
           <TopBar

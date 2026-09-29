@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Plus, X, Trash2, AlertTriangle, RefreshCw, Search } from "lucide-react";
 import { listExpenses, createExpense, deleteExpense, EXPENSE_CATEGORIES, type Expense } from "../lib/expenses";
-import { useMoney, localToday } from "../lib/format";
+import { useMoney, useCurrency, localToday } from "../lib/format";
 
 type Props = { businessId: string; role: string | null };
 const canManage = (role: string | null) => role === "owner" || role === "manager";
@@ -25,6 +25,7 @@ function AddExpenseModal({
   const [date, setDate] = useState(today());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const currency = useCurrency();
 
   const submit = async () => {
     setError("");
@@ -59,7 +60,7 @@ function AddExpenseModal({
             </select>
           </label>
           <label className="block text-sm">
-            <span className="block font-medium text-gray-700 mb-1.5">Amount (UGX)</span>
+            <span className="block font-medium text-gray-700 mb-1.5">Amount ({currency})</span>
             <input type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="0" />
           </label>
           <label className="block text-sm">

@@ -3,7 +3,11 @@ import { type ReactNode, useEffect } from "react";
 import LandingPage from "./pages/LandingPage";
 import BizFlowApp from "./pages/AppShell";
 import { AuthPage, SetupPage } from "./pages/AuthPage";
+import AuthCallbackPage from "./pages/AuthCallbackPage";
+import ResendConfirmationPage from "./pages/ResendConfirmationPage";
+import AdminPage from "./pages/AdminPage";
 import { useAuth, useBusiness } from "./context/AuthContext";
+import { useAdmin } from "./context/AdminContext";
 import { NewSalePage } from "./pages/SalesPage";
 
 function LoadingScreen() {
@@ -49,6 +53,21 @@ function NewSaleRoute() {
   return <NewSalePage businessId={business.id} />;
 }
 
+/**
+ * AdminRoute — only platform admins can access this.
+ * Non-admins are redirected to /login (unauthenticated) or /app (authenticated non-admin).
+ * The admin check is done against the Supabase platform_admins table — cannot be bypassed.
+ */
+function AdminRoute({ children }: { children: ReactNode }) {
+  const { session, loading: authLoading } = useAuth();
+  const { isAdmin, adminLoading }          = useAdmin();
+
+  if (authLoading || adminLoading) return <LoadingScreen />;
+  if (!session)  return <Navigate to="/login" replace />;
+  if (!isAdmin)  return <Navigate to="/app"   replace />;
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -59,6 +78,13 @@ export default function App() {
         {/* Auth routes */}
         <Route path="/login"  element={<PublicRoute />} />
         <Route path="/signup" element={<PublicRoute />} />
+
+        {/* Auth callback — Supabase redirects here after email confirmation / password reset */}
+        <Route path="/auth/callback"       element={<AuthCallbackPage />} />
+        <Route path="/resend-confirmation" element={<ResendConfirmationPage />} />
+
+        {/* Admin — platform administrators only */}
+        <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
 
         {/* App routes — protected */}
         <Route path="/app/setup"     element={<ProtectedRoute setup><SetupPage /></ProtectedRoute>} />

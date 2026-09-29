@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AlertTriangle, Boxes, Check, ChevronRight, Edit3, Package,
+  AlertTriangle, Boxes, Check, ChevronRight, Edit3, History, Package,
   Plus, RefreshCw, Search, Smartphone, X, ToggleLeft, ToggleRight,
 } from "lucide-react";
 import {
@@ -9,6 +9,7 @@ import {
   setProductActive, stockState, updateProduct,
 } from "../lib/inventory";
 import { useMoney } from "../lib/format";
+import { getStockMovements, type StockMovement } from "../lib/dashboard";
 
 type Props = { businessId: string; role: string | null };
 const canManage = (role: string | null) =>
@@ -564,6 +565,109 @@ function ProductModal({
    PRODUCT DETAIL PANEL
    ========================================================= */
 
+/* =========================================================
+   STOCK MOVEMENT HISTORY
+   ========================================================= */
+
+const MOVEMENT_LABELS: Record<string, { label: string; color: string }> = {
+  stock_received: { label: "Received",   color: "text-green-600" },
+  sale:           { label: "Sold",       color: "text-blue-600"  },
+  return:         { label: "Returned",   color: "text-purple-600"},
+  adjustment:     { label: "Adjustment", color: "text-amber-600" },
+  damaged:        { label: "Damaged",    color: "text-red-600"   },
+  lost:           { label: "Lost",       color: "text-red-600"   },
+};
+
+function StockHistory({ productId }: { productId: string }) {
+  const [movements, setMovements] = useState<StockMovement[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState("");
+
+  const load = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      setMovements(await getStockMovements(productId));
+      setLoaded(true);
+    } catch {
+      setError("Could not load movement history.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-5 border-t border-gray-100 pt-5">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+          <History size={15} className="text-gray-400" />
+          Stock movement history
+        </p>
+        {!loaded && (
+          <button
+            onClick={load}
+            disabled={loading}
+            className="text-xs text-green-600 font-medium hover:text-green-800 disabled:opacity-50"
+          >
+            {loading ? "Loading…" : "Load history"}
+          </button>
+        )}
+        {loaded && (
+          <button onClick={load} disabled={loading} className="text-gray-400 hover:text-gray-600 disabled:opacity-50">
+            <RefreshCw size={13} />
+          </button>
+        )}
+      </div>
+
+      {error && <p className="text-xs text-red-600">{error}</p>}
+
+      {loaded && movements.length === 0 && (
+        <p className="text-xs text-gray-400">No stock movements recorded yet.</p>
+      )}
+
+      {loaded && movements.length > 0 && (
+        <div className="divide-y divide-gray-50 border border-gray-100 rounded-xl overflow-hidden">
+          {movements.map((m) => {
+            const meta = MOVEMENT_LABELS[m.movement_type] ?? { label: m.movement_type, color: "text-gray-600" };
+            return (
+              <div key={m.id} className="px-4 py-2.5 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-gray-800">
+                    <span className={meta.color}>{meta.label}</span>
+                    {m.receipt_number && (
+                      <span className="text-gray-400 font-normal"> · {m.receipt_number}</span>
+                    )}
+                    {m.reason && (
+                      <span className="text-gray-400 font-normal"> · {m.reason}</span>
+                    )}
+                  </p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    {m.staff_name && `${m.staff_name} · `}
+                    {new Date(m.created_at).toLocaleString("en-UG", {
+                      month: "short", day: "numeric",
+                      hour: "2-digit", minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+                <span className={`text-sm font-semibold shrink-0 ${
+                  m.quantity > 0 ? "text-green-600" : "text-red-600"
+                }`}>
+                  {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   PRODUCT DETAIL PANEL
+   ========================================================= */
+
 function Detail({
   product, onClose, onEdit, onReload, canEdit,
 }: {
@@ -829,6 +933,9 @@ function Detail({
             This product is inactive and won't appear in new sales.
           </p>
         )}
+
+        {/* Stock movement history */}
+        <StockHistory productId={product.id} />
       </div>
     </div>
   );
