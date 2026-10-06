@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary meta -->
+    <title>BizFlow — Run your business. Grow your profit.</title>
+    <meta name="description" content="BizFlow is the all-in-one operating system for small businesses. Manage sales, inventory, expenses, customers and reports — simple, smart, and powerful." />
+    <meta name="theme-color" content="#16a34a" />
+
+    <!-- Favicon (inline SVG data URI — no separate file needed) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2316a34a'/%3E%3Cpolyline points='6,22 12,14 18,18 26,8' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="BizFlow — Run your business. Grow your profit." />
+    <meta property="og:description" content="The all-in-one operating system for small businesses. Sales, inventory, customers, expenses and reports in one place." />
+    <meta property="og:site_name" content="BizFlow" />
+
+    <!-- Print styles: isolate the receipt card when printing -->
+    <style>
+      @media print {
+        /* Hide everything by default */
+        body > * { display: none !important; }
+
+        /* Show only the receipt card */
+        .print-receipt { display: block !important; }
+
+        /* Reset page margins */
+        @page { margin: 1cm; }
+
+        /* Remove shadows and borders that waste ink */
+        .print-receipt * {
+          box-shadow: none !important;
+          border-color: #e5e7eb !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
