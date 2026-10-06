@@ -797,8 +797,8 @@ button {
    ---------------------------------------------------------- */
 .contact-layout {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: var(--space-3xl);
+  grid-template-columns: 1fr 1.6fr;
+  gap: var(--space-2xl);
   align-items: start;
 }
 
