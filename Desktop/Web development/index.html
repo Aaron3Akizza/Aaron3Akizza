@@ -8,104 +8,94 @@
 </head>
 <body>
 
-  <header id="navbar">
-    <nav class="nav-container" aria-label="Main navigation">
-      <a href="index.html" class="nav-logo" aria-label="AA — Home">
-        <span class="logo-text">AA</span>
-      </a>
-      <ul class="nav-links" role="list">
-        <li><a href="index.html"    class="nav-link active">Home</a></li>
-        <li><a href="about.html"    class="nav-link">About</a></li>
-        <li><a href="services.html" class="nav-link">Services</a></li>
-        <li><a href="contact.html"  class="nav-link">Contact</a></li>
-      </ul>
-      <a href="aaron-akizza-cv.pdf" class="btn btn-outline nav-cv" download>Download CV</a>
-    </nav>
-  </header>
+  <!-- Navigation -->
+  <div class="navbar">
+    <a href="index.html" class="logo">AA</a>
 
-  <main>
-    <section class="hero">
-      <div class="hero-content">
-        <p class="hero-greeting">Hello, I'm</p>
-        <h1 class="hero-name">
-          <span class="name-dark">Aaron</span><span class="name-orange"> Akizza</span>
-        </h1>
-        <p class="hero-subtitle">IT Student &nbsp;|&nbsp; Network Enthusiast &nbsp;|&nbsp; Future Data Analyst</p>
-        <p class="hero-description">
-          I'm a passionate IT student with a strong interest in networking, data analysis and technology solutions.
-          I enjoy building useful digital experiences and continuously improving my technical skills.
-        </p>
-        <div class="hero-actions">
-          <a href="services.html" class="btn btn-primary">What I Offer</a>
-          <a href="contact.html"  class="btn btn-secondary">Contact Me</a>
-        </div>
-        <div class="hero-socials">
-          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="LinkedIn">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
-          </a>
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="GitHub">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
-          </a>
-          <a href="mailto:akizzaaron@gmail.com" class="social-link" aria-label="Email">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          </a>
-        </div>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+
+    <a href="aaron-akizza-cv.pdf" class="nav-cv" download>Download CV</a>
+  </div>
+
+  <!-- Hero section -->
+  <div class="hero">
+
+    <!-- Left side: text -->
+    <div class="hero-text">
+      <p class="greeting">Hello, I'm</p>
+
+      <h1>Aaron <span class="orange">Akizza</span></h1>
+
+      <p class="subtitle">IT Student &nbsp;|&nbsp; Network Enthusiast &nbsp;|&nbsp; Future Data Analyst</p>
+
+      <p class="description">
+        I'm a passionate IT student with a strong interest in networking, data analysis
+        and technology solutions. I enjoy building useful digital experiences and
+        continuously improving my technical skills.
+      </p>
+
+      <div>
+        <a href="services.html" class="btn-orange">What I Offer</a>
+        <a href="contact.html" class="btn-plain">Contact Me</a>
       </div>
 
-      <div class="hero-image-wrapper">
-        <div class="hero-image-frame">
-          <img
-            src="images/profile.jpg"
-            alt="Aaron Akizza"
-            class="hero-img"
-            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
-          />
-          <div class="img-placeholder hero-placeholder" style="display:none;" aria-hidden="true">
-            <span class="placeholder-initials">AA</span>
-          </div>
-        </div>
-        <div class="hero-badge">
-          <span>Learn</span>
-          <span class="badge-divider">·</span>
-          <span>Build</span>
-          <span class="badge-divider">·</span>
-          <span>Grow</span>
-        </div>
+      <div class="socials">
+        <a href="https://linkedin.com" target="_blank">LinkedIn</a>
+        <a href="https://github.com" target="_blank">GitHub</a>
+        <a href="mailto:akizzaaron@gmail.com">Email</a>
       </div>
-    </section>
-  </main>
+    </div>
 
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-brand">
-        <a href="index.html" class="footer-logo" aria-label="AA — Home">
-          <span class="logo-text">AA</span>
-        </a>
+    <!-- Right side: photo -->
+    <div class="hero-photo">
+      <img
+        src="images/profile.jpg"
+        alt="Aaron Akizza"
+        onerror="this.style.display='none'; document.getElementById('hero-placeholder').style.display='flex';"
+      />
+      <div class="photo-placeholder" id="hero-placeholder" style="display: none;">AA</div>
+
+      <div class="hero-badge">
+        Learn <span class="dot">·</span> Build <span class="dot">·</span> Grow
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-top">
+
+      <div class="footer-logo-box">
+        <a href="index.html" class="footer-logo">AA</a>
         <p class="footer-name">Aaron Akizza</p>
       </div>
-      <nav class="footer-nav" aria-label="Footer navigation">
-        <a href="index.html"    class="footer-link">Home</a>
-        <a href="about.html"    class="footer-link">About</a>
-        <a href="services.html" class="footer-link">Services</a>
-        <a href="contact.html"  class="footer-link">Contact</a>
-      </nav>
-      <div class="footer-socials">
-        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="footer-social" aria-label="LinkedIn">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
-        </a>
-        <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="footer-social" aria-label="GitHub">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
-        </a>
-        <a href="mailto:akizzaaron@gmail.com" class="footer-social" aria-label="Email">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        </a>
+
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="services.html">Services</a>
+        <a href="contact.html">Contact</a>
       </div>
+
+      <div class="footer-socials">
+        <a href="https://linkedin.com" target="_blank">LinkedIn</a>
+        <a href="https://github.com" target="_blank">GitHub</a>
+        <a href="mailto:akizzaaron@gmail.com">Email</a>
+      </div>
+
     </div>
+
     <div class="footer-bottom">
       <p>&copy; 2026 Aaron Akizza. All rights reserved.</p>
-      <p class="footer-tagline">Learn &nbsp;&bull;&nbsp; Build &nbsp;&bull;&nbsp; Grow</p>
+      <p class="footer-tagline">Learn &bull; Build &bull; Grow</p>
     </div>
-  </footer>
+  </div>
 
 </body>
 </html>
