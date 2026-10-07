@@ -357,19 +357,6 @@ p.section-sub {
   padding: 14px 20px;
 }
 
-.info-card-icon {
-  background-color: #fff3ef;
-  color: #F4511E;
-  font-size: 18px;
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
 .info-card-title {
   font-size: 10px;
   font-weight: bold;
@@ -404,19 +391,6 @@ p.section-sub {
 
 .service-card:hover {
   border-color: #F4511E;
-}
-
-.service-icon {
-  background-color: #fff3ef;
-  color: #F4511E;
-  font-size: 20px;
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
 }
 
 .service-card h3 {
@@ -477,19 +451,6 @@ p.section-sub {
   border: 1px solid #E5E7EB;
   border-radius: 10px;
   padding: 14px 18px;
-}
-
-.contact-card-icon {
-  background-color: #fff3ef;
-  color: #F4511E;
-  font-size: 18px;
-  width: 42px;
-  height: 42px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
 
 .contact-card-label {
