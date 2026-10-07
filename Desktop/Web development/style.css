@@ -1,8 +1,3 @@
-/* ================================
-   Aaron Akizza — Portfolio Styles
-   ================================ */
-
-/* --- Page defaults --- */
 body {
   margin: 0;
   padding: 0;
@@ -21,7 +16,6 @@ img {
   max-width: 100%;
 }
 
-/* --- Navigation bar --- */
 .navbar {
   background-color: #ffffff;
   border-bottom: 1px solid #E5E7EB;
@@ -80,7 +74,6 @@ img {
   color: #F4511E;
 }
 
-/* --- Hero section --- */
 .hero {
   display: flex;
   align-items: center;
@@ -124,7 +117,6 @@ img {
   margin-bottom: 30px;
 }
 
-/* --- Buttons --- */
 .btn-orange {
   background-color: #F4511E;
   color: #ffffff;
@@ -158,7 +150,6 @@ img {
   color: #F4511E;
 }
 
-/* --- Social links --- */
 .socials {
   margin-top: 28px;
   display: flex;
@@ -179,7 +170,6 @@ img {
   color: #F4511E;
 }
 
-/* --- Hero photo --- */
 .hero-photo {
   flex-shrink: 0;
   text-align: center;
@@ -194,7 +184,6 @@ img {
   display: block;
 }
 
-/* Photo placeholder — shows when no image is found */
 .photo-placeholder {
   width: 320px;
   height: 380px;
@@ -229,7 +218,6 @@ img {
   margin: 0 4px;
 }
 
-/* --- Page header banner (inner pages) --- */
 .page-header {
   background-color: #F8F8F8;
   border-bottom: 1px solid #E5E7EB;
@@ -261,7 +249,6 @@ img {
   line-height: 1.7;
 }
 
-/* --- Section wrapper --- */
 .section {
   padding: 70px 40px;
   max-width: 1100px;
@@ -272,11 +259,6 @@ img {
   background-color: #F8F8F8;
 }
 
-.section-soft .section {
-  /* inner container still has its own padding */
-}
-
-/* --- Section label + heading --- */
 p.section-label {
   color: #F4511E;
   font-size: 11px;
@@ -299,7 +281,6 @@ p.section-sub {
   margin-bottom: 40px;
 }
 
-/* --- About layout --- */
 .about-layout {
   display: flex;
   gap: 60px;
@@ -340,7 +321,6 @@ p.section-sub {
   margin-bottom: 32px;
 }
 
-/* --- Info cards (Education, Focus, Goal) --- */
 .info-cards {
   display: flex;
   flex-direction: column;
@@ -348,9 +328,6 @@ p.section-sub {
 }
 
 .info-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
   background-color: #ffffff;
   border: 1px solid #E5E7EB;
   border-radius: 10px;
@@ -373,7 +350,6 @@ p.section-sub {
   margin: 0;
 }
 
-/* --- Services grid --- */
 .services-grid {
   display: flex;
   flex-wrap: wrap;
@@ -407,7 +383,6 @@ p.section-sub {
   margin: 0;
 }
 
-/* --- Services note --- */
 .services-note {
   margin-top: 40px;
   background-color: #fff3ef;
@@ -428,7 +403,6 @@ p.section-sub {
   font-weight: bold;
 }
 
-/* --- Contact layout --- */
 .contact-layout {
   display: flex;
   gap: 50px;
@@ -444,9 +418,6 @@ p.section-sub {
 }
 
 .contact-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
   background-color: #ffffff;
   border: 1px solid #E5E7EB;
   border-radius: 10px;
@@ -477,7 +448,6 @@ p.section-sub {
   color: #F4511E;
 }
 
-/* --- Contact form --- */
 .contact-form {
   flex: 1;
   display: flex;
@@ -532,7 +502,6 @@ p.section-sub {
   background-color: #D84315;
 }
 
-/* --- Footer --- */
 .footer {
   background-color: #17202A;
   color: rgba(255, 255, 255, 0.65);
